@@ -1,16 +1,17 @@
-import React, { Component } from 'react';
-import LightsaberHandle from '../public/lightsaber.png';
-import Badge from 'react-bootstrap/Badge';
+import React, { Component, useRef, useEffect} from 'react';
 import data from './data.js';
 import axios from 'axios';
 import getResults from './search.js'
+import {SearchResults} from './SearchResults.js'
 // import Form from 'react-bootstrap/Form';
 // import Button from 'react-bootstrap/Button';
 // import Bootstrap from "react-bootstrap";
-import { ButtonGroup, ToggleButtonGroup, ToggleButton, Table, InputGroup, Button, FormControl, Dropdown, DropdownButton } from 'react-bootstrap';
+import { ButtonGroup, ToggleButtonGroup, ToggleButton, Table, InputGroup, Button, FormControl} from 'react-bootstrap';
 
+ 
 
 class SearchFilters extends Component {
+	
 
 	constructor(props) {
 		super(props);
@@ -31,6 +32,10 @@ class SearchFilters extends Component {
 		}
 	}
 
+	// focusResults(){
+	// 	this.resultsDiv.current.focus();
+	// }
+
 	callSearchAPI(evt) {
 
 		let resultPromise = getResults(this.state.queryString, this.state.episode, this.state.selectedCharacters);
@@ -40,11 +45,22 @@ class SearchFilters extends Component {
 			console.log(resultObject)
 			if(resultObject.hasOwnProperty("data") && resultObject.data.hasOwnProperty("hits")){
 				console.log(resultObject.data.hits)
+				if (resultObject.data.hits.length === 0){
+					this.setState({
+						noResultString: "No results found :/",
+						results: resultObject.data.hits
+					});
+				} else {
+					this.setState({
+						results: resultObject.data.hits
+					});
+				}
+			} else {
 				this.setState({
+					noResultString: "Error :(",
 					results: resultObject.data.hits
 				});
-			} else {
-				console.log("NO HITS");
+				console.log("Error: hits");
 			}
 		})
 		
@@ -88,16 +104,10 @@ class SearchFilters extends Component {
 
 
 	render() {
-
+		   
 		return (
 			<div>
 				<div className="searchBar">
-					{/* <table>
-            <tbody>
-              <tr >
-                {/* <td><img src={LightsaberHandle}  style={{height: "calc(1.5em + .75rem + 2px + 0.375rem + 0.375rem + 0.25rem)"}}/></td> 
-                <td>
-                <span> */}
 					<InputGroup className="mb-3">
 						<FormControl
 							onChange={this.updateQueryString.bind(this)}
@@ -107,13 +117,6 @@ class SearchFilters extends Component {
 							<Button variant="outline-warning" onClick={this.callSearchAPI.bind(this)}>Search</Button>
 						</InputGroup.Append>
 					</InputGroup>
-					{/* </span>
-                </td>
-              </tr>
-            </tbody>
-          </table> */}
-
-
 				</div>
 				<br />
 				<br />
@@ -154,28 +157,15 @@ class SearchFilters extends Component {
 
 					</div>
 				</div>
-				<div id="searchResults">
+				<div id="searchResults" style={{height:300}}>
 					{this.state.results.length === 0 ?
 						<h2 id="noResults">{this.state.noResultString}</h2>
 						:
 						<div>
-						<br/>
-						<br/>
-						<h2>Results:</h2>
-						<Table responsive bordered variant="dark">
-							<thead>
-								<tr>
-									<th>Character</th><th>Movie</th><th>Scene Title</th><th>Quote</th><th>Year</th><th>Sequence</th>
-								</tr>
-							</thead>
-							<tbody>
-								{this.state.results.map(result => (
-									<tr key={result._id}>
-										<td>{result._source.character}</td><td>{result._source.movie}</td><td>{result._source.sceneTitle}</td><td>{result._source.quote}</td><td>{result._source.year}</td><td>{result._source.sequence}</td>
-									</tr>
-								))}
-							</tbody>
-						</Table>
+							<br/>
+							<br/>
+							<h2>Results:</h2>
+							<SearchResults results={this.state.results} ></SearchResults>
 						</div>
 					}
 				</div>

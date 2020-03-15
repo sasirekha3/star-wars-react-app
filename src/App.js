@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import LightsaberHandle from '../public/lightsaber.png';
 import Badge from 'react-bootstrap/Badge';
 import SearchFilters from './SearchFilters.js';
 // import Form from 'react-bootstrap/Form';
