@@ -1,17 +1,17 @@
-import React, { Component, useRef, useEffect} from 'react';
+import React, { Component, useRef, useEffect } from 'react';
 import data from './data.js';
 import axios from 'axios';
 import getResults from './search.js'
-import {SearchResults} from './SearchResults.js'
+import { SearchResults } from './SearchResults.js'
 // import Form from 'react-bootstrap/Form';
 // import Button from 'react-bootstrap/Button';
 // import Bootstrap from "react-bootstrap";
-import { ButtonGroup, ToggleButtonGroup, ToggleButton, Table, InputGroup, Button, FormControl} from 'react-bootstrap';
+import { Pagination, ToggleButtonGroup, ToggleButton, Table, InputGroup, Button, FormControl } from 'react-bootstrap';
 
- 
+
 
 class SearchFilters extends Component {
-	
+
 
 	constructor(props) {
 		super(props);
@@ -28,42 +28,68 @@ class SearchFilters extends Component {
 			characters: superSetJson,
 			selectedCharacters: [],
 			results: [],
-			noResultString: ""
+			totalResults: 0,
+			noResultString: "",
+			activePage: 1,
+			paginationItems: []
 		}
 	}
 
-	// focusResults(){
-	// 	this.resultsDiv.current.focus();
-	// }
+	setPaginationItems() {
+		console.log("this.state.totalResults / 10: ", this.state.totalResults / 10);
+		let pageCount = this.state.totalResults % 10 == 0 ? Math.trunc((this.state.totalResults / 10)) :  Math.trunc((this.state.totalResults / 10) + 1);
+		console.log("pageCount: ", pageCount);
+		let items = []
+		for (let i = 1; i <= pageCount; i++) {
+			items.push(
+			  <Pagination.Item key={i} active={i === this.state.activePage} onClick={this.callSearchAPI.bind(this, i)} variant="outline-warning">
+				{i}
+			  </Pagination.Item>,
+			);
+		}
+		this.setState({
+			paginationItems: items
+		});
+	}
 
-	callSearchAPI(evt) {
+	callSearchAPI(page, evt) {
+		console.log("page selected: ", page);
+		this.setState({
+			activePage: page
+		})
 
-		let resultPromise = getResults(this.state.queryString, this.state.episode, this.state.selectedCharacters);
+		let resultPromise = getResults(this.state.queryString, this.state.episode, this.state.selectedCharacters, (page * 10) - 10, 10);
 		let resultObject = null;
 		resultPromise.then((result) => {
 			resultObject = result;
 			console.log(resultObject)
-			if(resultObject.hasOwnProperty("data") && resultObject.data.hasOwnProperty("hits")){
+			if (resultObject.hasOwnProperty("data") && resultObject.data.hasOwnProperty("hits")) {
 				console.log(resultObject.data.hits)
-				if (resultObject.data.hits.length === 0){
+				if (resultObject.data.hits.length === 0) {
 					this.setState({
 						noResultString: "No results found :/",
-						results: resultObject.data.hits
+						results: resultObject.data.hits,
+						totalResults: resultObject.data.total.value
 					});
 				} else {
+					console.log("resultObject.data.total.value: ", resultObject.data.total.value);
 					this.setState({
-						results: resultObject.data.hits
+						results: resultObject.data.hits,
+						totalResults: resultObject.data.total.value,
+						noResultString: ""
 					});
+					this.setPaginationItems();
 				}
 			} else {
 				this.setState({
 					noResultString: "Error :(",
-					results: resultObject.data.hits
+					results: [],
+					totalResults: 0
 				});
 				console.log("Error: hits");
 			}
 		})
-		
+
 
 	}
 
@@ -102,19 +128,26 @@ class SearchFilters extends Component {
 		});
 	}
 
+	handleKeyPress(target) {
+		if(target.charCode==13){
+			this.callSearchAPI(this.state.activePage, target);
+		} 
+	  }
+
 
 	render() {
-		   
+
 		return (
 			<div>
 				<div className="searchBar">
 					<InputGroup className="mb-3">
 						<FormControl
 							onChange={this.updateQueryString.bind(this)}
+							onKeyPress={this.handleKeyPress.bind(this)}
 							placeholder="Search..."
 						/>
 						<InputGroup.Append>
-							<Button variant="outline-warning" onClick={this.callSearchAPI.bind(this)}>Search</Button>
+							<Button variant="outline-warning" onClick={this.callSearchAPI.bind(this, 1)}>Search</Button>
 						</InputGroup.Append>
 					</InputGroup>
 				</div>
@@ -154,20 +187,10 @@ class SearchFilters extends Component {
 							</tbody>
 						</Table>
 
-
 					</div>
 				</div>
-				<div id="searchResults" style={{height:300}}>
-					{this.state.results.length === 0 ?
-						<h2 id="noResults">{this.state.noResultString}</h2>
-						:
-						<div>
-							<br/>
-							<br/>
-							<h2>Results:</h2>
-							<SearchResults results={this.state.results} ></SearchResults>
-						</div>
-					}
+				<div id="searchResults" style={{ height: 300 }}>
+					<SearchResults results={this.state.results} paginationItems={this.state.paginationItems} noResultString={this.state.noResultString} ></SearchResults>
 				</div>
 			</div>
 		);

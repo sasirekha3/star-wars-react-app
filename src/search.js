@@ -1,11 +1,13 @@
 import axios from 'axios';
 
-module.exports = function (queryString, episodes = [], characters = {}) {
+module.exports = function (queryString, episodes = [], characters = {}, from = 0, size = 10) {
     if(episodes === [] && characters === {} && (query === "" || query === undefined)) {
         return null;
     }
     
     let query = {
+        "from": from,
+        "size": size,
         "query": {
             "bool": {
                 "should": [
