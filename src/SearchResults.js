@@ -38,6 +38,7 @@ export const SearchResults = ({ results, paginationItems, noResultString }) => {
                 </div>
             }
         </div>
+
     )
 
 }

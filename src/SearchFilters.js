@@ -37,14 +37,14 @@ class SearchFilters extends Component {
 
 	setPaginationItems() {
 		console.log("this.state.totalResults / 10: ", this.state.totalResults / 10);
-		let pageCount = this.state.totalResults % 10 == 0 ? Math.trunc((this.state.totalResults / 10)) :  Math.trunc((this.state.totalResults / 10) + 1);
+		let pageCount = this.state.totalResults % 10 == 0 ? Math.trunc((this.state.totalResults / 10)) : Math.trunc((this.state.totalResults / 10) + 1);
 		console.log("pageCount: ", pageCount);
 		let items = []
 		for (let i = 1; i <= pageCount; i++) {
 			items.push(
-			  <Pagination.Item key={i} active={i === this.state.activePage} onClick={this.callSearchAPI.bind(this, i)} variant="outline-warning">
-				{i}
-			  </Pagination.Item>,
+				<Pagination.Item key={i} active={i === this.state.activePage} onClick={this.callSearchAPI.bind(this, i)} variant="outline-warning">
+					{i}
+				</Pagination.Item>,
 			);
 		}
 		this.setState({
@@ -129,10 +129,10 @@ class SearchFilters extends Component {
 	}
 
 	handleKeyPress(target) {
-		if(target.charCode==13){
+		if (target.charCode == 13) {
 			this.callSearchAPI(this.state.activePage, target);
-		} 
-	  }
+		}
+	}
 
 
 	render() {
@@ -190,7 +190,9 @@ class SearchFilters extends Component {
 					</div>
 				</div>
 				<div id="searchResults" style={{ height: 300 }}>
-					<SearchResults results={this.state.results} paginationItems={this.state.paginationItems} noResultString={this.state.noResultString} ></SearchResults>
+					{this.state.noResultString === "" && this.state.totalResults === 0 ? "" : 
+						<SearchResults results={this.state.results} paginationItems={this.state.paginationItems} noResultString={this.state.noResultString} ></SearchResults>
+					}
 				</div>
 			</div>
 		);
